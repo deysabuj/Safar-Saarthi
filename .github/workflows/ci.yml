@@ -1,0 +1,220 @@
+name: Safar Saarthi CI Pipeline
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =========================================================================
+  # 1. Type Checking & Static Code Analysis
+  # =========================================================================
+  typecheck:
+    name: TypeScript & Static Type Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Build Shared Package
+        run: npm run build --workspace=@safar-saarthi/shared
+
+      - name: Generate Prisma Client
+        run: cd backend && npx prisma generate
+
+      - name: TypeScript Typecheck All Workspaces
+        run: npm run typecheck
+
+  # =========================================================================
+  # 2. Backend Unit, Integration, & Resilience Test Suites
+  # =========================================================================
+  backend-tests:
+    name: Backend Unit & Integration Tests (PostgreSQL)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: safar_saarthi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      PORT: 5000
+      DATABASE_URL: "postgresql://postgres:postgrespassword@localhost:5432/safar_saarthi_test?schema=public"
+      JWT_SECRET: "ci-test-secure-jwt-secret-key-at-least-32-characters"
+      AMADEUS_CLIENT_ID: ""
+      AMADEUS_CLIENT_SECRET: ""
+      AMADEUS_ENV: "test"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Build Shared Package
+        run: npm run build --workspace=@safar-saarthi/shared
+
+      - name: Setup Database Schema
+        run: cd backend && npx prisma db push --skip-generate
+
+      - name: Run Backend Vitest Suites
+        run: npm run test --workspace=safar-saarthi-backend
+
+  # =========================================================================
+  # 3. AI Multi-Agent Specialist Service Tests
+  # =========================================================================
+  ai-service-tests:
+    name: AI Service Multi-Agent Tests (Pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        working-directory: ./ai-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Pytest Multi-Agent Suites
+        working-directory: ./ai-service
+        run: pytest -v
+
+  # =========================================================================
+  # 4. Frontend Production Build & Bundle Verification
+  # =========================================================================
+  frontend-build:
+    name: Frontend SPA Production Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Shared Package
+        run: npm run build --workspace=@safar-saarthi/shared
+
+      - name: Build Frontend SPA
+        run: npm run build --workspace=frontend
+
+  # =========================================================================
+  # 5. Playwright End-to-End User Journey Tests
+  # =========================================================================
+  e2e-tests:
+    name: Playwright Chromium E2E Tests
+    runs-on: ubuntu-latest
+    needs: [frontend-build]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Shared Package & Frontend
+        run: |
+          npm run build --workspace=@safar-saarthi/shared
+          npm run build --workspace=frontend
+
+      - name: Install Playwright Chromium & Dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright Tests
+        run: npx playwright test --project=chromium
+
+      - name: Upload E2E Artifacts on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # =========================================================================
+  # 6. Container Image Build Verification
+  # =========================================================================
+  docker-builds:
+    name: Docker Image Build Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Backend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: false
+          tags: safar-saarthi-backend:ci-test
+
+      - name: Build AI Service Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ai-service
+          file: ./ai-service/Dockerfile
+          push: false
+          tags: safar-saarthi-ai-service:ci-test
+
+      - name: Build Frontend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: false
+          tags: safar-saarthi-frontend:ci-test
