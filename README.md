@@ -1,354 +1,300 @@
-# Safar Saarthi (सफ़र सारथी)
+# 🧭 Safar Saarthi — AI-Powered Multi-Agent Travel Planner
 
-[![CI Pipeline](https://github.com/sabuj-dey/safar-saarthi/actions/workflows/ci.yml/badge.svg)](https://github.com/sabuj-dey/safar-saarthi/actions/workflows/ci.yml)
-[![Node.js Version](https://img.shields.io/badge/Node.js-20.x%20%7C%2022.x-green.svg)](https://nodejs.org/)
-[![Python Version](https://img.shields.io/badge/Python-3.11%20%7C%203.13-blue.svg)](https://python.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
-[![Docker Compose](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+**Plan Smarter. Travel Better. Explore Further.**
 
-> **Autonomous Multi-Modal Travel Intelligence & Multi-Agent Planning Platform for India**
+Safar Saarthi is an AI-powered multi-agent travel planning platform designed to simplify trip planning by bringing transportation comparison, accommodation discovery, activity recommendations, budget planning and personalized itinerary generation into one place.
 
-Safar Saarthi unifies **Indian Railways (IRCTC trains)**, **domestic airlines**, and **intercity buses** into a single, transparent comparative matrix. It calculates true door-to-door journey costs (including cab transfers and baggage), deterministically identifies **Cheapest**, **Fastest**, and **Best-Value** routes, and coordinates an autonomous 5-agent AI network to build feasible, culture-aware day-wise itineraries.
+It coordinates specialized AI agents to help travelers explore suitable travel options based on their preferences, constraints and budget.
 
 ---
 
-## 📑 Table of Contents
-1. [Core Features](#-core-features)
-2. [System Architecture & Data Flow](#-system-architecture--data-flow)
-3. [Technology Stack](#-technology-stack)
-4. [System Requirements](#-system-requirements)
-5. [Quickstart: Single-Command Deployment (Docker)](#-quickstart-single-command-deployment-docker)
-6. [Manual Local Development Setup](#-manual-local-development-setup)
-7. [Database Setup & Migrations](#-database-setup--migrations)
-8. [External Provider Integration Setup](#-external-provider-integration-setup)
-9. [AI Specialist Service & LLM Configuration](#-ai-specialist-service--llm-configuration)
-10. [Automated Testing Suite](#-automated-testing-suite)
-11. [REST API Documentation](#-rest-api-documentation)
-12. [Resilience, Security & Hardening](#-resilience-security--hardening)
-13. [Limitations & Future Scope](#-limitations--future-scope)
-14. [Documentation & Viva Materials](#-documentation--viva-materials)
+## 🌍 Overview
 
----
+Planning a trip often requires switching between multiple platforms to compare transportation, find accommodation, research destinations and organize itineraries.
 
-## 🌟 Core Features
+Safar Saarthi aims to simplify this process through an integrated travel planning experience.
 
-- **Multi-Modal Transport Comparison**: Compare Flights, IRCTC Trains, and Intercity Buses side-by-side across major Indian travel corridors.
-- **Deterministic Journey Ranking**: Mathematically sorts routes into `CHEAPEST`, `FASTEST`, and `BEST_VALUE` without relying on probabilistic LLM arithmetic.
-- **Full Door-to-Door Cost Model**: Calculates ticket fares, mandatory government/airport taxes, first-mile/last-mile cab transfers, and station connection fees.
-- **5-Agent AI Orchestration Network**:
-  1. *Trip Coordinator Agent*: Interprets requests and validates mandatory trip constraints.
-  2. *Transport Recommendation Agent*: Contextualizes transit trade-offs.
-  3. *Accommodation Agent*: Selects verified stays based on hub proximity.
-  4. *Activities Agent*: Curates monument visits and operating hours.
-  5. *Budget & Constraint Agent*: Enforces 45-minute transit exit buffers, detects budget deficits, and suggests savings.
-- **Anti-Backtracking Spatial Engine**: Pairwise Haversine distance calculations ensure daily sightseeing follows a linear geographical corridor.
-- **Secure Accounts & Private Itineraries**: Scrypt password hashing, HMAC-SHA256 JWT tokens, constant-time verification, and single-click trip duplication.
-- **Open-Redirect & Deep-Link Sanitization**: Restricts redirection strictly to official provider domains (`irctc.co.in`, `goindigo.in`, `airindia.com`, `redbus.in`, `makemytrip.com`) and strips sensitive auth tokens.
+Users can explore available travel options, compare flights, trains and buses, discover destinations, and generate personalized itineraries with the assistance of specialized AI agents.
 
----
+## ✨ Key Features
 
-## 🏛 System Architecture & Data Flow
+- **Multi-Modal Transport Comparison:** Explore and compare flights, trains and buses side-by-side with deterministic `CHEAPEST`, `FASTEST`, and `BEST_VALUE` rankings.
+- **AI-Powered Travel Planning:** 5 specialized AI agents coordinate different aspects of trip planning with anti-backtracking sightseeing sequences.
+- **Smart Itinerary Generation:** Generate personalized, feasible day-wise travel itineraries based on user preferences and constraints.
+- **Accommodation Discovery:** Explore accommodation options with hub proximity and verified traveler ratings.
+- **Destination Exploration:** Discover attractions, monument operating hours, and insider local tips.
+- **Budget Planning:** Compare door-to-door travel costs (including first/last-mile cab transfers) and organize trip budgets.
+- **City Autocomplete:** Search destinations using city names, airport codes and railway station identifiers with accessible keyboard navigation.
+- **Modify Search:** Update travel searches without restarting the entire planning process.
+- **Responsive Interface:** Premium travel-tech brand identity designed for both desktop and mobile experiences.
 
-```mermaid
-graph TD
-    User["Traveler Browser / Mobile"] -->|Port 5173 / 80| Frontend["Frontend SPA (React 19 / Vite / TailwindCSS / Nginx)"]
-    Frontend -->|REST API JSON| Backend["Core API Gateway (Node.js / Express / TypeScript)"]
-    
-    Backend -->|Prisma ORM| Postgres[("PostgreSQL 16 Relational DB")]
-    Backend -->|Sliding-Window Cache| Redis[("Redis 7 Cache & Queue")]
-    
-    Backend -->|HTTP JSON /api/v1/plan| AIService["AI Multi-Agent Service (FastAPI / Python 3.11)"]
-    AIService -->|LLM Reasoning| Gemini["Google Gemini / OpenAI"]
+> **Data Transparency:** Transport demonstration benchmarks are indicative estimates, not confirmed live schedules, fares or seat availability. Real-time transport availability depends on configured and authorized third-party provider integrations.
 
-    subgraph "Concurrent Transport Dispatch (Promise.allSettled)"
-        Backend --> AmadeusAdapter["Amadeus Flight Adapter"]
-        Backend --> IRCTCAdapter["IRCTC Rail Adapter"]
-        Backend --> RedBusAdapter["RedBus / RTC Bus Adapter"]
-    end
+## 🤖 Multi-Agent Architecture
 
-    AmadeusAdapter -->|OAuth2 v2| AmadeusLive["Amadeus API"]
-    IRCTCAdapter -->|REST| IRCTCLive["IRCTC Network"]
-    RedBusAdapter -->|REST| RedBusLive["RedBus Gateway"]
+Safar Saarthi uses an autonomous 5-agent network to coordinate trip planning tasks:
+
+| Agent | Responsibility |
+|---|---|
+| **Trip Coordinator Agent** | Interprets queries, validates mandatory constraints, and orchestrates the agent network |
+| **Transport Recommendation Agent** | Contextualizes transit trade-offs between flight speed, rail comfort, and bus value |
+| **Accommodation Agent** | Recommends verified stays based on transit hub proximity and traveler style |
+| **Activities Agent** | Curates monuments, attractions, and cultural sights with operating hours |
+| **Budget & Constraint Agent** | Enforces 45-min transit exit buffers, verifies budget variance, and identifies savings |
+
+## 🛠️ Technology Stack
+
+### Frontend
+- React 19
+- TypeScript
+- Vite 6
+- Tailwind CSS
+
+### Backend
+- Node.js 20+
+- Express.js
+- TypeScript
+- Prisma ORM 6
+
+### AI Service
+- Python 3.11 / 3.13
+- FastAPI
+- Multi-Agent Orchestration (Mock / Gemini / OpenAI)
+
+### Database & Infrastructure
+- PostgreSQL 16
+- Redis 7
+- Docker & Docker Compose
+- Nginx (Alpine)
+
+### Testing & Validation
+- TypeScript (Strict type checking)
+- Vitest (Unit & Integration tests)
+- Pytest (AI Agent tests)
+- Playwright (End-to-End browser tests)
+
+## 🏗️ System Architecture
+
+```text
+                 SAFAR SAARTHI
+                       |
+          +------------+------------+
+          |                         |
+      Frontend                  Backend API
+   React + TypeScript         Node.js + Express
+                                    |
+                +-------------------+------------------+
+                |                   |                  |
+            Transport            Database          AI Service
+            Integrations        PostgreSQL          FastAPI
+                |                   |                  |
+        +-------+-------+           |          +-------+-------+
+        |       |       |           |          |       |       |
+      Flights Trains   Buses      Redis      Travel  Stay   Activities
+                                                   |
+                                             Itinerary Agent
 ```
 
-For full architectural diagrams, see:
-- [System Architecture Diagram](docs/ARCHITECTURE_DIAGRAM.md)
-- [Entity-Relationship (ER) Diagram](docs/ER_DIAGRAM.md)
-- [Data-Flow Diagrams (Level 0 & Level 1)](docs/DATA_FLOW_DIAGRAM.md)
-- [Multi-Modal Sequence Diagram](docs/SEQUENCE_DIAGRAM.md)
-- [Use-Case Diagram](docs/USE_CASE_DIAGRAM.md)
+## 📁 Project Structure
 
----
+```text
+safar-saarthi/
+│
+├── frontend/              # React 19 + Vite frontend application
+│   ├── src/               # UI components, pages, contexts, services
+│   └── vercel.json        # Frontend Vercel SPA configuration
+│
+├── backend/               # Node.js backend gateway and API
+│   ├── prisma/            # Database schema and migrations
+│   └── src/
+│       ├── integrations/  # External transport provider adapters
+│       ├── providers/     # Travel data providers & benchmarks
+│       └── tests/         # Unit and integration test suites
+│
+├── ai-service/            # Python FastAPI AI multi-agent service
+│   ├── app/               # 5-agent network, schemas, LLM providers
+│   └── tests/             # Pytest suite
+│
+├── packages/
+│   └── shared/            # Shared TypeScript types, utilities, benchmarks
+│
+├── e2e/                   # Playwright end-to-end tests
+├── docs/                  # Architectural diagrams, viva QA, guides
+├── docker-compose.yml     # Production container configuration
+├── docker-compose.dev.yml # Development container configuration
+├── vercel.json            # Monorepo root Vercel configuration
+├── package.json
+├── README.md
+└── .gitignore
+```
 
-## 💻 Technology Stack
+## ⚙️ Getting Started
 
-| Layer | Technologies |
-|:---|:---|
-| **Frontend** | React 19, TypeScript 5.7, Vite 6, Tailwind CSS 3.4, Lucide Icons |
-| **Backend Gateway** | Node.js 20+, Express 4.21, TypeScript 5.7, Prisma 6.4, Zod 3.24 |
-| **AI Specialist Service** | Python 3.11/3.13, FastAPI 0.115, Pydantic v2, Uvicorn, HTTPX |
-| **Databases & Cache** | PostgreSQL 16 (Relational data), Redis 7 (Rate limiting & cache) |
-| **Testing Harness** | Vitest 3.2 (Unit & Integration), Pytest 9.1 (AI Agents), Playwright 1.64 (E2E) |
-| **Container & Web Server** | Docker (Multi-stage builds), Docker Compose, Nginx (Alpine) |
+### Prerequisites
 
----
+Install the following before running the application:
 
-## ⚙️ System Requirements
+- Node.js 20+
+- npm
+- Docker Desktop
+- Docker Compose
+- Git
 
-- **Node.js**: `v20.12.0` or higher (LTS recommended)
-- **npm**: `v10.0.0` or higher
-- **Python**: `v3.11` or `v3.13`
-- **Docker**: `v24.0+` & Docker Compose `v2.20+` (optional for containerized deployment)
-- **PostgreSQL**: `v16.0+` (local or via Docker)
+### 1. Clone the repository
 
----
-
-## 🚀 Quickstart: Single-Command Deployment (Docker)
-
-The fastest and most reproducible way to launch the entire production stack:
-
-### On Linux / macOS:
 ```bash
-git clone https://github.com/sabuj-dey/safar-saarthi.git
-cd safar-saarthi
-chmod +x deploy.sh
-./deploy.sh
+git clone https://github.com/deysabuj/safar-saarthi.git
 ```
 
-### On Windows (PowerShell):
-```powershell
-git clone https://github.com/sabuj-dey/safar-saarthi.git
+### 2. Navigate to the project
+
+```bash
 cd safar-saarthi
-.\deploy.ps1
 ```
 
-### What this does:
-1. Validates prerequisites and creates `.env` from `.env.example`.
-2. Builds lightweight multi-stage Docker images for Frontend, Backend, and AI Service.
-3. Starts PostgreSQL 16 and Redis 7 and waits for health probes to turn green.
-4. Automatically runs Prisma migrations (`prisma migrate deploy`) and seeds initial benchmark providers, stays, and places (`prisma:seed`).
-5. Launches all services on dedicated internal Docker networks.
+### 3. Configure environment variables
 
-### Service URLs:
-- **Frontend SPA**: [http://localhost:5173](http://localhost:5173) (or `http://localhost`)
-- **Backend API Gateway**: [http://localhost:5000](http://localhost:5000)
-- **Backend Health Check**: [http://localhost:5000/health](http://localhost:5000/health)
-- **AI Specialist Service**: [http://localhost:8000/health](http://localhost:8000/health)
-- **AI Swagger API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+Create the required environment files using the provided `.env.example` templates:
 
----
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+cp ai-service/.env.example ai-service/.env
+```
 
-## 🛠 Manual Local Development Setup
+Configure the necessary database, Redis, backend, AI service and provider settings. Never commit actual API keys, passwords or secret credentials.
 
-If developing locally without Docker:
+### 4. Install dependencies
 
-### 1. Install Monorepo Dependencies
 ```bash
 npm install
 ```
 
-### 2. Start PostgreSQL & Redis
-Using the development Docker Compose:
-```bash
-docker compose -f docker-compose.dev.yml up -d
-```
-*(Or point `DATABASE_URL` in `backend/.env` to an existing PostgreSQL 16 instance)*
-
-### 3. Setup Database & Seed Initial Data
-```bash
-npm run prisma:generate --workspace=backend
-npm run prisma:migrate --workspace=backend
-npm run prisma:seed --workspace=backend
-```
-
-### 4. Setup and Run AI Specialist Service
-```bash
-cd ai-service
-python -m venv .venv
-
-# On Windows:
-.venv\Scripts\activate
-# On Linux/macOS:
-source .venv/bin/activate
-
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --port 8000
-```
-
-### 5. Run Backend Gateway (New Terminal)
-```bash
-npm run dev:backend
-# Listening on http://localhost:5000
-```
-
-### 6. Run Frontend Application (New Terminal)
-```bash
-npm run dev:frontend
-# Accessible at http://localhost:5173
-```
-
----
-
-## 🗄 Database Setup & Migrations
-
-Safar Saarthi uses Prisma ORM on PostgreSQL with strict schema definitions for Trips, Transport Offers, Providers, Itineraries, Places, and Users.
+### 5. Start the application using Docker
 
 ```bash
-# Generate Prisma Client
-npm run prisma:generate --workspace=backend
-
-# Run development migrations (with interactive prompt)
-npm run prisma:migrate --workspace=backend
-
-# Deploy migrations in production (non-interactive)
-npm run prisma:deploy --workspace=backend
-
-# Seed benchmark Indian travel data (Providers, Hotels, Monuments)
-npm run prisma:seed --workspace=backend
-
-# Open visual database browser
-npm run prisma:studio --workspace=backend
+docker compose up --build -d
 ```
 
----
+### 6. Access the application
 
-## 🔌 External Provider Integration Setup
+| Service | Local URL |
+|---|---|
+| Frontend | http://localhost:5173 |
+| Backend | http://localhost:5000 |
+| AI Service | http://localhost:8000 |
 
-Safar Saarthi operates in a hybrid mode: it connects to real-world live APIs when credentials are provided and gracefully falls back to authentic Indian travel benchmarks when credentials are left blank.
-
-### 1. Amadeus for Developers (Domestic Flights)
-1. Register for a free account at [developers.amadeus.com](https://developers.amadeus.com/).
-2. Create an application to get your API Key and Secret (Self-Service tier includes 2,000 free monthly test calls).
-3. Set variables in `backend/.env`:
-   ```ini
-   AMADEUS_CLIENT_ID="your_client_id"
-   AMADEUS_CLIENT_SECRET="your_client_secret"
-   AMADEUS_ENV="test" # "test" or "production"
-   ```
-
-### 2. Indian Railways (IRCTC / Rail Gateway)
-- Set variables in `backend/.env`:
-  ```ini
-  IRCTC_API_KEY="your_api_key" # RapidAPI or authorized CRIS gateway
-  ```
-- *Security Note*: Safar Saarthi redirects users to the official `irctc.co.in` deep-link and **never** requests or stores users' IRCTC passwords.
-
-### 3. Intercity Buses (RedBus / State RTCs)
-- Set variables in `backend/.env`:
-  ```ini
-  REDBUS_API_KEY="your_api_key"
-  ```
-
----
-
-## 🤖 AI Provider Configuration
-
-The AI Multi-Agent Service (`ai-service`) supports Google Gemini, OpenAI, or a deterministic Mock provider (ideal for testing and offline development).
-
-Configure in `ai-service/.env`:
-```ini
-# Choose provider: "mock", "gemini", or "openai"
-LLM_PROVIDER="gemini"
-
-# For Google Gemini (Recommended):
-GEMINI_API_KEY="your_gemini_api_key"
-GEMINI_MODEL="gemini-1.5-flash"
-
-# For OpenAI:
-OPENAI_API_KEY="your_openai_api_key"
-OPENAI_MODEL="gpt-4o-mini"
-```
-
----
-
-## 🧪 Automated Testing Suite
-
-The codebase has undergone exhaustive testing across all tiers:
+Check running containers:
 
 ```bash
-# 1. Run all 11 Backend Vitest Suites (137 tests)
-npm run test --workspace=safar-saarthi-backend
+docker compose ps
+```
 
-# 2. Run AI Specialist Service Pytest Suites (22 tests)
-cd ai-service && pytest -v
+View application logs:
 
-# 3. Run Playwright End-to-End Browser Tests (9 scenarios)
-npx playwright test --project=chromium
+```bash
+docker compose logs -f
+```
 
-# 4. Run TypeScript Typechecking Across All Packages
+Stop the application:
+
+```bash
+docker compose stop
+```
+
+## 🔑 External API Configuration
+
+Live transport integrations require valid provider credentials and authorized API access:
+
+- `AMADEUS_CLIENT_ID` & `AMADEUS_CLIENT_SECRET` (Flights)
+- `IRCTC_API_KEY` (Indian Railways)
+- `REDBUS_API_KEY` (Intercity Buses)
+- `GEMINI_API_KEY` or `OPENAI_API_KEY` (AI Itinerary Generation)
+
+Refer to `.env.example` and service-specific templates for complete environment configuration. Without configured live provider access, the application uses authentic demonstration benchmark data across 14 major Indian transport corridors.
+
+## 🧪 Testing
+
+Run static analysis and builds from the project root:
+
+```bash
 npm run typecheck
-
-# 5. Build Production Frontend Bundle
-npm run build --workspace=frontend
+npm run build
 ```
 
-See [Testing and Results Report](docs/TESTING_RESULTS.md) for detailed test metrics and logs.
+Run backend test suite (181 passed):
 
----
+```bash
+npm run test --workspace=backend
+```
 
-## 📡 REST API Documentation
+Run Playwright end-to-end test suite (36 passed across Desktop & Mobile):
 
-Base URL: `http://localhost:5000/api/v1`
+```bash
+npx playwright test
+```
 
-| Area | Method | Endpoint | Description |
-|:---|:---|:---|:---|
-| **Health** | `GET` | `/health`, `/api/v1/health` | Service liveness, DB connection latency, and uptime. |
-| **Trips** | `POST` | `/api/v1/trips/search` | Search and rank multi-modal transport options. |
-| **Trips** | `GET` | `/api/v1/trips/:id` | Retrieve trip details and associated transport offers. |
-| **Itinerary** | `POST` | `/api/v1/ai/generate-itinerary` | Trigger multi-agent pipeline to generate day-wise itinerary. |
-| **Auth** | `POST` | `/api/v1/auth/register` | Create user account with persona preferences. |
-| **Auth** | `POST` | `/api/v1/auth/login` | Authenticate user and receive signed JWT. |
-| **User** | `GET` | `/api/v1/users/me/profile` | Retrieve authenticated traveler profile. |
-| **Saved Trips**| `GET` | `/api/v1/users/me/saved-trips` | Fetch private bookmarked trips. |
-| **Saved Trips**| `POST` | `/api/v1/users/me/saved-trips` | Save an itinerary plan. |
-| **Saved Trips**| `POST` | `/api/v1/users/me/saved-trips/:id/duplicate` | Duplicate an existing saved itinerary. |
-| **Places** | `GET` | `/api/v1/places/search?city=Jaipur`| Discover destination attractions with opening hours. |
+Run AI service test suite (22 passed):
 
----
+```bash
+cd ai-service && pytest
+```
 
-## 🔒 Resilience, Security & Hardening
+## 🚀 Deployment
 
-- **Scrypt Password Hashing**: Passwords derived using unique 16-byte cryptographically secure salts.
-- **Timing-Safe Operations**: Token and password checks use `crypto.timingSafeEqual` to thwart timing attacks.
-- **Strict CORS & Size Limits**: Strict origin allowlisting and `1mb` maximum JSON payload body limits.
-- **Rate Limiting**: Sliding-window rate limiting on all `/api` endpoints (120 req/min) and auth endpoints.
-- **Security Headers**: Enforces `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Strict-Transport-Security`.
-- **Fault-Isolated Dispatch**: `Promise.allSettled` ensures upstream provider timeouts never crash overall searches.
+### Vercel (Frontend)
+The frontend is configured for deployment on Vercel with automated workspace build ordering and client-side SPA routing:
+- **Root Directory**: `./` (leave blank/root)
+- **Framework Preset**: `Vite`
+- **Build Command**: `npm run build:frontend` (or default `vercel-build`)
+- **Output Directory**: `frontend/dist`
+- **Environment Variable**: `VITE_API_URL=https://<your-backend-api-domain>/api`
 
----
+### Docker & Cloud (Backend, AI Service, Databases)
+- Production containers are orchestrated via `docker-compose.yml`.
+- Multi-stage Dockerfiles enforce non-root system execution (`safaruser` / `aiuser`) and built-in health probes (`/health`).
 
-## ⚠️ Limitations & Future Scope
+## 📚 Technical Documentation
 
-| Status | Capability | Notes |
-|:---|:---|:---|
-| ✅ **Implemented** | Multi-Modal Comparison | Deterministic Cheapest / Fastest / Best-Value ranking. |
-| ✅ **Implemented** | Multi-Agent AI Itineraries | Day-wise planning with transit buffers and anti-backtracking. |
-| ✅ **Implemented** | User Accounts & Duplication| Scrypt password hashing and private trip management. |
-| ⚠️ **Provider-Dependent** | Live Amadeus Flights | Requires API keys; falls back to verified benchmarks if unset. |
-| ⚠️ **Provider-Dependent** | Direct IRCTC Seat Booking | IRCTC legal policy restricts 3rd-party purchasing; provides official deep-link redirection. |
-| 🔮 **Planned Future** | WhatsApp Travel Assistant | Receive itineraries and train delay push notifications via WhatsApp. |
-| 🔮 **Planned Future** | Group Collaborative Editing| Multi-user real-time planning via WebSockets. |
+Comprehensive architectural and project defense materials are available in [`docs/`](docs/):
+- **[System Architecture Diagram](docs/ARCHITECTURE_DIAGRAM.md)**
+- **[Entity-Relationship (ER) Diagram](docs/ER_DIAGRAM.md)**
+- **[Data-Flow Diagrams (DFD Level 0 & Level 1)](docs/DATA_FLOW_DIAGRAM.md)**
+- **[Multi-Modal Sequence Diagram](docs/SEQUENCE_DIAGRAM.md)**
+- **[Use-Case Diagram](docs/USE_CASE_DIAGRAM.md)**
+- **[Testing Results & Verification](docs/TESTING_RESULTS.md)**
+- **[Backup & Disaster Recovery Runbook](docs/BACKUP_AND_RECOVERY.md)**
+- **[Live Demonstration Script](docs/DEMO_SCRIPT.md)**
+- **[Viva Questions & Answers](docs/VIVA_QA.md)**
+- **[Resume Bullet Points](docs/RESUME_POINTS.md)**
 
-See [Limitations & Future Scope](docs/LIMITATIONS_AND_FUTURE_SCOPE.md) for full details.
+## 🔮 Future Enhancements
 
----
+- Broader real-time transportation integrations.
+- More regional and international travel coverage.
+- Advanced route optimization.
+- Enhanced AI-powered recommendations.
+- Personalized travel preferences.
+- Improved price comparison and budget optimization.
+- Additional travel booking integrations.
 
-## 📚 Documentation & Viva Materials
+## 👨‍💻 Developer
 
-Comprehensive academic and interview documentation is available in [`docs/`](docs/):
-- **[System Architecture Diagram](docs/ARCHITECTURE_DIAGRAM.md)**: Detailed diagram of multi-tier services and data flows.
-- **[Entity-Relationship Diagram](docs/ER_DIAGRAM.md)**: Complete PostgreSQL Prisma data model.
-- **[Data-Flow Diagrams](docs/DATA_FLOW_DIAGRAM.md)**: Level 0 and Level 1 DFDs.
-- **[Sequence Diagram](docs/SEQUENCE_DIAGRAM.md)**: Interaction sequence for multimodal search and AI planning.
-- **[Use-Case Diagram](docs/USE_CASE_DIAGRAM.md)**: Functional actor and use-case matrix.
-- **[Testing Results Chapter](docs/TESTING_RESULTS.md)**: Test metrics, logs, and coverage reports.
-- **[Backup & Recovery Guide](docs/BACKUP_AND_RECOVERY.md)**: Database backup, disaster recovery, and migration rollback runbooks.
-- **[Demonstration Script](docs/DEMO_SCRIPT.md)**: 5-to-10 minute live presentation guide.
-- **[Viva Questions & Answers](docs/VIVA_QA.md)**: Comprehensive answers for defense and technical interviews.
-- **[Resume Bullet Points](docs/RESUME_POINTS.md)**: Production-ready resume descriptions and skill keywords.
+**Sabuj Dey**
 
----
+BCA Undergraduate | Full-Stack Developer | AI & Technology Enthusiast
+
+Interested in building intelligent applications that solve real-world problems through software engineering and AI.
 
 ## 📄 License
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+<p align="center">
+  **Safar Saarthi**
+  <br/>
+  Plan Smarter. Travel Better. Explore Further.
+</p>
