@@ -13,6 +13,9 @@
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:ai": "cd ai-service && python -m uvicorn app.main:app --reload --port 8000",
     "build": "npm run build --workspaces --if-present",
+    "build:shared": "npm run build --workspace=@safar-saarthi/shared",
+    "build:frontend": "npm run build:shared && npm run build --workspace=safar-saarthi-frontend",
+    "vercel-build": "npm run build:frontend",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present"

@@ -12,8 +12,9 @@ import {
   MOCK_SAVED_TRIPS,
   getRouteBenchmarkOptions,
 } from './fixtures';
+import { getApiBaseUrl } from '../config/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = getApiBaseUrl();
 const SAVED_TRIPS_STORAGE_KEY = 'safar_saarthi_saved_trips_v1';
 
 export class TravelApiService {
