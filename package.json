@@ -1,0 +1,37 @@
+{
+  "name": "safar-saarthi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Safar Saarthi - AI-Powered Multi-Agent Travel Planning & Transport Comparison Platform for India",
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:ai": "cd ai-service && python -m uvicorn app.main:app --reload --port 8000",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "keywords": [
+    "travel-planner",
+    "multi-agent",
+    "india-travel",
+    "flights",
+    "trains",
+    "buses",
+    "irctc",
+    "makemytrip"
+  ],
+  "author": "Safar Saarthi Engineering Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "concurrently": "^9.1.2",
+    "prettier": "^3.5.3"
+  }
+}
